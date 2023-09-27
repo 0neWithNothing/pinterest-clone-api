@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from api.utils import RandomFileName
 
 
 class UserManager(BaseUserManager):
@@ -48,16 +49,33 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 
 class Profile(models.Model):
-    user = models.OneToOneField(User, related_name="profile", on_delete=models.CASCADE)
+    user = models.OneToOneField(User, related_name='profile', on_delete=models.CASCADE)
     username = models.CharField(unique=True, max_length=20)
     first_name = models.CharField(max_length=50, blank=True)
     last_name = models.CharField(max_length=50, blank=True)
     bio = models.TextField(blank=True)
-    avatar = models.ImageField(upload_to="profile_pics/", null=True, blank=True)
+    avatar = models.ImageField(upload_to=RandomFileName('profile_pics'), null=True, blank=True)
 
     def __str__(self) -> str:
         return self.username
-    
+
+
+class UserFollowing(models.Model):
+
+    user = models.ForeignKey(User, related_name='following', on_delete=models.CASCADE)
+    following_user = models.ForeignKey(User, related_name='followers', on_delete=models.CASCADE)
+    created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        # constraints = [
+        #     models.UniqueConstraint(fields=['user_id','following_user_id'],  name="unique_followers")
+        # ]
+
+        ordering = ['-created']
+
+    def __str__(self):
+        return f"{self.user} follows {self.following_user}"
+
 
 @receiver(post_save, sender=User)
 def create_profile(sender, instance, created, **kwargs):
