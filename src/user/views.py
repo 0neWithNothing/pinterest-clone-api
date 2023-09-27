@@ -16,10 +16,6 @@ class UserCreateAPIView(generics.CreateAPIView):
 class ProfileRetrieveUpdateAPIView(generics.RetrieveUpdateAPIView):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
-
-    def get_object(self):
-        profile = get_object_or_404(self.queryset, user=self.request.user)
-        return profile
     
     def update(self, request, *args, **kwargs):
         kwargs['partial'] = True
