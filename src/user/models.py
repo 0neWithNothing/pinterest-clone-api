@@ -3,6 +3,7 @@ from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, Permis
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from api.utils import RandomFileName
+from django.template.defaultfilters import slugify
 
 
 class UserManager(BaseUserManager):
@@ -55,6 +56,7 @@ class Profile(models.Model):
     last_name = models.CharField(max_length=50, blank=True)
     bio = models.TextField(blank=True)
     avatar = models.ImageField(upload_to=RandomFileName('profile_pics'), null=True, blank=True)
+    slug = models.SlugField()
 
     def __str__(self) -> str:
         return self.username
@@ -67,9 +69,9 @@ class UserFollowing(models.Model):
     created = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        # constraints = [
-        #     models.UniqueConstraint(fields=['user_id','following_user_id'],  name="unique_followers")
-        # ]
+        constraints = [
+            models.UniqueConstraint(fields=['user','following_user'],  name="unique_followers")
+        ]
 
         ordering = ['-created']
 
@@ -81,4 +83,4 @@ class UserFollowing(models.Model):
 def create_profile(sender, instance, created, **kwargs):
     if created:
         username = instance.email.split('@')[0]
-        Profile.objects.create(user=instance, username=username)
+        Profile.objects.create(user=instance, username=username, slug=slugify(username))

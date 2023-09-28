@@ -39,3 +39,7 @@ class Like(models.Model):
     pin = models.ForeignKey(Pin, related_name='likes', on_delete=models.CASCADE)
     user = models.ForeignKey(User, related_name='likes', on_delete=models.CASCADE)
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['pin','user'],  name="unique_like")
+        ]

@@ -2,8 +2,9 @@ from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from rest_framework.validators import UniqueValidator
 from django.contrib.auth import get_user_model
+from django.template.defaultfilters import slugify
 
-from .models import Profile
+from .models import Profile, UserFollowing
 
 User = get_user_model()
 
@@ -36,4 +37,21 @@ class ProfileSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(read_only=True)
     class Meta:
         model = Profile
+        exclude = ('slug', )
+    
+
+    def update(self, instance, validated_data):
+        instance.username = validated_data.get('username', instance.username)
+        instance.slug = slugify(instance.username)
+        instance.first_name = validated_data.get('first_name', instance.first_name)
+        instance.last_name = validated_data.get('last_name', instance.last_name)
+        instance.bio = validated_data.get('bio', instance.bio)
+        instance.avatar = validated_data.get('avatar', instance.avatar)
+        instance.save()
+        return instance
+
+
+class UserFollowingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserFollowing
         fields = '__all__'
