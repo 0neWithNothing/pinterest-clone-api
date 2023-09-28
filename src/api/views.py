@@ -57,7 +57,7 @@ class LikeAPIView(DestroyModelMixin, generics.ListCreateAPIView):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        if self.get_queryset().filter(user=self.request.user).exists():
+        if self.get_queryset().filter(user=request.user).exists():
             return Response({'detail': 'You have already liked the pin'}, status=status.HTTP_400_BAD_REQUEST)
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
@@ -87,7 +87,7 @@ class CommentCreateAPIView(generics.CreateAPIView):
             pin=pin,
             user=self.request.user
         )
-
+    
 
 class CommentRetrieveUpdateDestroy(generics.RetrieveUpdateDestroyAPIView):
     queryset = Comment.objects.all()

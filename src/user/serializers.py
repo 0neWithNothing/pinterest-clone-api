@@ -52,6 +52,8 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 
 class UserFollowingSerializer(serializers.ModelSerializer):
+    user = serializers.PrimaryKeyRelatedField(read_only=True)
+    following_user = serializers.PrimaryKeyRelatedField(read_only=True)
     class Meta:
         model = UserFollowing
         fields = '__all__'
