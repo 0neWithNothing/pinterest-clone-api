@@ -1,5 +1,9 @@
+import os
 from django.db import models
 from django.contrib.auth import get_user_model
+from django.db.models.signals import pre_save, post_delete
+from django.dispatch import receiver
+
 from .utils import RandomFileName
 
 User = get_user_model()
@@ -43,3 +47,33 @@ class Like(models.Model):
         constraints = [
             models.UniqueConstraint(fields=['pin','user'],  name="unique_like")
         ]
+
+@receiver(post_delete, sender=Pin)
+def pin_delete_image_on_delete(sender, instance, **kwargs):
+    """
+    Deletes image from filesystem
+    when corresponding `Pin` object is deleted.
+    """
+    if instance.avatar:
+        if os.path.isfile(instance.avatar.path):
+            os.remove(instance.avatar.path)
+
+@receiver(pre_save, sender=Pin)
+def pin_delete_image_on_change(sender, instance, **kwargs):
+    """
+    Deletes old image from filesystem
+    when corresponding `Pin` object is updated
+    with new image.
+    """
+    if not instance.pk:
+        return False
+    try:
+        old_image = Pin.objects.get(pk=instance.pk).image
+    except Pin.DoesNotExist:
+        return False
+    if not old_image:
+        return False
+    new_image = instance.image
+    if not old_image == new_image:
+        if os.path.isfile(old_image.path):
+            os.remove(old_image.path)

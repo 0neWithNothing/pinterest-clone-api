@@ -8,6 +8,7 @@ from rest_framework import status
 
 from .serializers import UserSerializer, ProfileSerializer, UserFollowingSerializer
 from .models import Profile, UserFollowing
+from api.permissions import IsOwnerOrReadOnly
 
 User = get_user_model()
 
@@ -20,6 +21,7 @@ class UserCreateAPIView(generics.CreateAPIView):
 class ProfileRetrieveUpdateAPIView(generics.RetrieveUpdateAPIView):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
+    permission_classes = [IsOwnerOrReadOnly]
     lookup_field = 'slug'
     
     def update(self, request, *args, **kwargs):

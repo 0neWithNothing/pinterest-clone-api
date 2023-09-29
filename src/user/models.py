@@ -1,6 +1,7 @@
+import os
 from django.db import models
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_save, post_delete
 from django.dispatch import receiver
 from api.utils import RandomFileName
 from django.template.defaultfilters import slugify
@@ -84,3 +85,34 @@ def create_profile(sender, instance, created, **kwargs):
     if created:
         username = instance.email.split('@')[0]
         Profile.objects.create(user=instance, username=username, slug=slugify(username))
+
+
+@receiver(post_delete, sender=Profile)
+def profile_delete_image_on_delete(sender, instance, **kwargs):
+    """
+    Deletes image from filesystem
+    when corresponding `Profile` object is deleted.
+    """
+    if instance.avatar:
+        if os.path.isfile(instance.avatar.path):
+            os.remove(instance.avatar.path)
+
+@receiver(pre_save, sender=Profile)
+def profile_delete_image_on_change(sender, instance, **kwargs):
+    """
+    Deletes old image from filesystem
+    when corresponding `Profile` object is updated
+    with new image.
+    """
+    if not instance.pk:
+        return False
+    try:
+        old_image = Profile.objects.get(pk=instance.pk).avatar
+    except Profile.DoesNotExist:
+        return False
+    if not old_image:
+        return False
+    new_image = instance.avatar
+    if not old_image == new_image:
+        if os.path.isfile(old_image.path):
+            os.remove(old_image.path)

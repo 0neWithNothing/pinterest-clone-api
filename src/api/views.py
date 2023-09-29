@@ -10,6 +10,7 @@ from django.db.models import Count
 
 from .models import Board, Pin, Comment, Like
 from .serializers import BoardSerializer, PinSerializer, PinCreateSerializer, PinRetrieveSerializer, LikeSerializer, CommentSerializer
+from .permissions import IsOwnerOrReadOnly
 
 
 class BoardViewSet(viewsets.ModelViewSet):
@@ -25,7 +26,7 @@ class BoardViewSet(viewsets.ModelViewSet):
 
 class PinViewSet(viewsets.ModelViewSet):
     queryset = Pin.objects.all()
-    permission_classes = []
+    permission_classes = [IsOwnerOrReadOnly]
 
     def get_queryset(self):
         return Pin.objects.annotate(total_likes=Count('likes'), total_comments=Count('comments'))
