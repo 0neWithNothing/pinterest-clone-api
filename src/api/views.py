@@ -18,6 +18,10 @@ class BoardViewSet(viewsets.ModelViewSet):
     serializer_class = BoardSerializer
     permission_classes = [IsAuthenticated]
 
+    # def get_queryset(self):
+    #     boards = self.queryset.filter(user=self.request.user)
+    #     return boards
+
     def perform_create(self, serializer):
         serializer.save(
             user=self.request.user
