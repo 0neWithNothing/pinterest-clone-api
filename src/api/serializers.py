@@ -3,23 +3,25 @@ from rest_framework import serializers
 from .models import Board, Pin, Comment, Like
 
 
-class BoardSerializer(serializers.ModelSerializer):
-    user = serializers.PrimaryKeyRelatedField(read_only=True)
+class ProfileBoardSerializer(serializers.ModelSerializer):
     class Meta:
         model = Board
-        fields = '__all__'
-
+        exclude = ('description', 'user', )
 
 
 class PinSerializer(serializers.ModelSerializer):
-    user = serializers.PrimaryKeyRelatedField(read_only=True)
     image = serializers.ImageField(read_only=True)
-    total_likes = serializers.IntegerField(read_only=True)
-    total_comments = serializers.IntegerField(read_only=True)
-    board = serializers.StringRelatedField()
     class Meta:
         model = Pin
-        fields = '__all__'
+        fields = ['id', 'image', 'title']
+
+
+class BoardSerializer(serializers.ModelSerializer):
+    pins = PinSerializer(many=True, read_only=True)
+    class Meta:
+        model = Board
+        # fields = '__all__'
+        exclude = ('user', )
 
 
 class UserFilteredPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
@@ -52,6 +54,7 @@ class PinRetrieveSerializer(serializers.ModelSerializer):
     image = serializers.ImageField(read_only=True)
     total_likes = serializers.IntegerField(read_only=True)
     total_comments = serializers.IntegerField(read_only=True)
+    board = serializers.StringRelatedField()
     comments = CommentSerializer(many=True, read_only=True)
     class Meta:
         model = Pin

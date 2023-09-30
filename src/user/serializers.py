@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 from django.template.defaultfilters import slugify
 
 from .models import Profile, UserFollowing
+from api.serializers import ProfileBoardSerializer
 
 User = get_user_model()
 
@@ -35,8 +36,10 @@ class UserSerializer(serializers.ModelSerializer):
 
 class ProfileSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(read_only=True)
+    boards = ProfileBoardSerializer(source='user.boards', many=True, read_only=True)
     class Meta:
         model = Profile
+        # fields = ['user', 'boards']
         exclude = ('slug', )
     
 

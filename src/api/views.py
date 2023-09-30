@@ -1,7 +1,6 @@
 from rest_framework import viewsets
 from rest_framework import generics
-from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.mixins import DestroyModelMixin
 from rest_framework import status
@@ -11,21 +10,33 @@ from django.db.models import Count
 from .models import Board, Pin, Comment, Like
 from .serializers import BoardSerializer, PinSerializer, PinCreateSerializer, PinRetrieveSerializer, LikeSerializer, CommentSerializer
 from .permissions import IsOwnerOrReadOnly
+from user.models import Profile
 
 
-class BoardViewSet(viewsets.ModelViewSet):
+class BoardCreateAPIView(generics.CreateAPIView):
     queryset = Board.objects.all()
     serializer_class = BoardSerializer
     permission_classes = [IsAuthenticated]
-
-    # def get_queryset(self):
-    #     boards = self.queryset.filter(user=self.request.user)
-    #     return boards
 
     def perform_create(self, serializer):
         serializer.save(
             user=self.request.user
         )
+
+
+class BoardRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = BoardSerializer
+    permission_classes = [IsOwnerOrReadOnly]
+
+    def get_queryset(self):
+        user = get_object_or_404(Profile, slug=self.kwargs.get('slug')).user
+        boards = Board.objects.filter(user=user).prefetch_related('pins')
+        return boards
+
+    def get_object(self):
+        board = get_object_or_404(self.get_queryset(), pk=self.kwargs.get(self.lookup_field))
+        return board
+
 
 
 class PinViewSet(viewsets.ModelViewSet):
@@ -50,6 +61,7 @@ class PinViewSet(viewsets.ModelViewSet):
 
 class LikeAPIView(DestroyModelMixin, generics.ListCreateAPIView):
     serializer_class = LikeSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get_pin(self):
         pin = get_object_or_404(Pin, pk=self.kwargs.get(self.lookup_field))
@@ -85,6 +97,7 @@ class LikeAPIView(DestroyModelMixin, generics.ListCreateAPIView):
 class CommentCreateAPIView(generics.CreateAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
+    permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
         pin = Pin.objects.get(pk=self.kwargs.get("pk"))
@@ -97,3 +110,4 @@ class CommentCreateAPIView(generics.CreateAPIView):
 class CommentRetrieveUpdateDestroy(generics.RetrieveUpdateDestroyAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]

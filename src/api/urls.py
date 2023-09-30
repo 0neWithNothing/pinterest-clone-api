@@ -5,7 +5,6 @@ from . import views
 
 router = DefaultRouter()
 
-router.register(r'boards', views.BoardViewSet, basename='board')
 router.register(r'pins', views.PinViewSet, basename='pin')
 
 
@@ -14,4 +13,6 @@ urlpatterns = [
     path('pins/<int:pk>/likes/', views.LikeAPIView.as_view(), name='likes'),
     path('pins/<int:pk>/comment/', views.CommentCreateAPIView.as_view(), name='add_comment'),
     path('comments/<int:pk>/', views.CommentRetrieveUpdateDestroy.as_view(), name='comment'),
+    path('boards/', views.BoardCreateAPIView.as_view(), name='add_board'),
+    path('profile/<slug:slug>/boards/<int:pk>/', views.BoardRetrieveUpdateDestroyAPIView.as_view(), name='boards'),
 ]
