@@ -6,10 +6,10 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
-from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
-from rest_framework_simplejwt.tokens import RefreshToken
+from django.contrib.auth import login, logout
 
-from .serializers import UserSerializer, ProfileSerializer, UserFollowingSerializer
+
+from .serializers import UserSerializer, ProfileSerializer, UserFollowingSerializer, LoginSerializer
 from .models import Profile, UserFollowing
 from api.permissions import IsOwnerOrReadOnly
 
@@ -17,24 +17,27 @@ from api.permissions import IsOwnerOrReadOnly
 User = get_user_model()
 
 
-class APILogoutView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request, *args, **kwargs):
-        if self.request.data.get('all'):
-            token: OutstandingToken
-            for token in OutstandingToken.objects.filter(user=request.user):
-                _, _ = BlacklistedToken.objects.get_or_create(token=token)
-            return Response({'status': 'OK, goodbye, all refresh tokens blacklisted'})
-        refresh_token = self.request.data.get('refresh_token')
-        token = RefreshToken(token=refresh_token)
-        token.blacklist()
-        return Response({'status': 'OK, goodbye'})
-
-
 class UserCreateAPIView(generics.CreateAPIView):
     model = User
     serializer_class = UserSerializer
+
+
+class LoginViewAPIView(APIView):
+
+    def post(self, request):
+        serializer = LoginSerializer(data=self.request.data, context={ 'request': self.request })
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
+        login(request, user)
+        return Response({'detail': 'Successfully logged in'}, status=status.HTTP_200_OK)
+
+
+class LogoutViewAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        logout(request)
+        return Response({'detail': 'Successfully logged out'}, status=status.HTTP_200_OK)
 
 
 class ProfileRetrieveUpdateAPIView(generics.RetrieveUpdateAPIView):
