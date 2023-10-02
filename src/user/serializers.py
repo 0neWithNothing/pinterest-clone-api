@@ -78,7 +78,6 @@ class ProfileSerializer(serializers.ModelSerializer):
     boards = ProfileBoardSerializer(source='user.boards', many=True, read_only=True)
     class Meta:
         model = Profile
-        # fields = ['user', 'boards']
         exclude = ('slug', )
     
 

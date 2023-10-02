@@ -7,6 +7,7 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from django.contrib.auth import login, logout
+from drf_spectacular.utils import extend_schema
 
 
 from .serializers import UserSerializer, ProfileSerializer, UserFollowingSerializer, LoginSerializer
@@ -23,7 +24,10 @@ class UserCreateAPIView(generics.CreateAPIView):
 
 
 class LoginViewAPIView(APIView):
-
+    @extend_schema(
+        request=LoginSerializer,
+        responses={200: LoginSerializer},
+    )
     def post(self, request):
         serializer = LoginSerializer(data=self.request.data, context={ 'request': self.request })
         serializer.is_valid(raise_exception=True)

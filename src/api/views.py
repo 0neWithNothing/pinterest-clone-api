@@ -35,13 +35,14 @@ class BoardRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_object(self):
         board = get_object_or_404(self.get_queryset(), pk=self.kwargs.get(self.lookup_field))
+        self.check_object_permissions(self.request, board)
         return board
 
 
 
 class PinViewSet(viewsets.ModelViewSet):
     queryset = Pin.objects.all()
-    permission_classes = [IsOwnerOrReadOnly]
+    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
 
     def get_queryset(self):
         return Pin.objects.annotate(total_likes=Count('likes'), total_comments=Count('comments'))
@@ -110,4 +111,4 @@ class CommentCreateAPIView(generics.CreateAPIView):
 class CommentRetrieveUpdateDestroy(generics.RetrieveUpdateDestroyAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsOwnerOrReadOnly]

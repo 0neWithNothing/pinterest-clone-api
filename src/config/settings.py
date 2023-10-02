@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     # external apps
     'rest_framework',
     'corsheaders',
+    'drf_spectacular',
     # internal apps
     'api',
     'user',
@@ -115,8 +116,19 @@ AUTH_PASSWORD_VALIDATORS = [
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
-    ]
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10,
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Pinterest Clone API',
+    'DESCRIPTION': 'This is a simple Pinterest clone API',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
 }
 
 # Internationalization

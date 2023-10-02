@@ -1,4 +1,6 @@
 from rest_framework import serializers
+from django.core.paginator import Paginator
+from rest_framework import status
 
 from .models import Board, Pin, Comment, Like
 
@@ -17,11 +19,23 @@ class PinSerializer(serializers.ModelSerializer):
 
 
 class BoardSerializer(serializers.ModelSerializer):
-    pins = PinSerializer(many=True, read_only=True)
+    pins = serializers.SerializerMethodField('paginated_pins')
     class Meta:
         model = Board
-        # fields = '__all__'
         exclude = ('user', )
+
+
+    def paginated_pins(self, obj):
+        page_size = 10
+        paginator = Paginator(obj.pins.all(), page_size)
+        page = self.context['request'].query_params.get('page') or 1
+        try:
+            pins_in_board = paginator.page(page)
+        except:
+            raise serializers.ValidationError({'detail': 'Invalid page.'})
+        serializer = PinSerializer(pins_in_board, many=True, read_only=True)
+
+        return serializer.data
 
 
 class UserFilteredPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
@@ -55,10 +69,23 @@ class PinRetrieveSerializer(serializers.ModelSerializer):
     total_likes = serializers.IntegerField(read_only=True)
     total_comments = serializers.IntegerField(read_only=True)
     board = serializers.StringRelatedField()
-    comments = CommentSerializer(many=True, read_only=True)
+    comments = serializers.SerializerMethodField('paginated_comments')
     class Meta:
         model = Pin
         fields = '__all__'
+
+
+    def paginated_comments(self, obj):
+        page_size = 20
+        paginator = Paginator(obj.comments.all(), page_size)
+        page = self.context['request'].query_params.get('page') or 1
+        try:
+            comments_in_pin = paginator.page(page)
+        except:
+            raise serializers.ValidationError({'detail': 'Invalid page.'})
+        serializer = CommentSerializer(comments_in_pin, many=True, read_only=True)
+
+        return serializer.data
 
 
 class LikeSerializer(serializers.ModelSerializer):
