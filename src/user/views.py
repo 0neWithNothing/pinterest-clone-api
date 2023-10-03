@@ -8,8 +8,15 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from django.contrib.auth import login, logout
 from drf_spectacular.utils import extend_schema
+from django.core.mail import EmailMessage
+from django.contrib.sites.shortcuts import get_current_site
+from django.template.loader import render_to_string
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
+from django.conf import settings
+from django.urls import reverse_lazy
 
-
+from .token import email_verification_token
 from .serializers import UserSerializer, ProfileSerializer, UserFollowingSerializer, LoginSerializer
 from .models import Profile, UserFollowing
 from api.permissions import IsOwnerOrReadOnly
@@ -21,6 +28,44 @@ User = get_user_model()
 class UserCreateAPIView(generics.CreateAPIView):
     model = User
     serializer_class = UserSerializer
+
+    def _send_email_verification(self, user):
+        domain = settings.BASE_BACKEND_URL
+        subject = 'Activate Your Account'
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        token = email_verification_token.make_token(user)
+        activate_uri = reverse_lazy('activate', kwargs={'uidb64':uid, 'token':token})
+        body_text = f'Hello, click on the link to confirm your registration'
+        body_url = f'{domain}{activate_uri}'
+        body = body_text + '\n' + body_url
+        EmailMessage(to=[user.email], subject=subject, body=body).send()
+
+    def perform_create(self, serializer):
+        user = serializer.save()
+        self._send_email_verification(user)
+
+
+class UserActivateAPIView(APIView):
+
+    def get_user_from_email_verification_token(self, uidb64, token):
+        try:
+            uid = force_str(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(pk=uid)
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            return None
+
+        if user is not None and email_verification_token.check_token(user, token):
+            return user
+        return None
+
+    def get(self, request, uidb64, token):
+        user = self.get_user_from_email_verification_token(uidb64, token)
+        if user is not None:
+            user.is_active = True
+            user.save()
+            login(request, user)
+            return Response({'detail': 'Your account has been successfully verified'}, status=status.HTTP_200_OK)
+        return Response({'detail': 'Something went wrong'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class LoginViewAPIView(APIView):
