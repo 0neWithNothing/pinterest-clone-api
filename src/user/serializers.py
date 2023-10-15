@@ -41,12 +41,6 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class LoginSerializer(serializers.Serializer):
-    """
-    This serializer defines two fields for authentication:
-      * username
-      * password.
-    It will try to authenticate the user with when validated.
-    """
     email = serializers.EmailField(label="Email", write_only=True)
     password = serializers.CharField(
         label="Password",
@@ -63,11 +57,9 @@ class LoginSerializer(serializers.Serializer):
             user = authenticate(request=self.context.get('request'),
                                 email=email, password=password)
             if not user:
-                msg = 'Access denied: wrong username or password.'
-                raise serializers.ValidationError(msg, code='authorization')
+                raise serializers.ValidationError('Access denied: wrong email or password, or user not activated.', code='authorization')
         else:
-            msg = 'Both "username" and "password" are required.'
-            raise serializers.ValidationError(msg, code='authorization')
+            raise serializers.ValidationError('Both "email" and "password" are required.', code='authorization')
         
         attrs['user'] = user
         return attrs

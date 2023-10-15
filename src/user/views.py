@@ -9,8 +9,6 @@ from rest_framework.views import APIView
 from django.contrib.auth import login, logout
 from drf_spectacular.utils import extend_schema
 from django.core.mail import EmailMessage
-from django.contrib.sites.shortcuts import get_current_site
-from django.template.loader import render_to_string
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.conf import settings
@@ -94,10 +92,6 @@ class ProfileRetrieveUpdateAPIView(generics.RetrieveUpdateAPIView):
     serializer_class = ProfileSerializer
     permission_classes = [IsOwnerOrReadOnly]
     lookup_field = 'slug'
-
-    def update(self, request, *args, **kwargs):
-        kwargs['partial'] = True
-        return super().update(request, *args, **kwargs)
 
 
 class FollowAPIView(DestroyModelMixin, generics.ListCreateAPIView):
