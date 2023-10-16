@@ -16,7 +16,7 @@ This is a API for Pinterest like application
 ### Installation
 
 1. Copy repository
-2. Create and activate virtual enviroment
+2. Create and activate virtual enviroment </br>
 `python3 -m venv venv`
 `source venv/bin/activate` or `venv\Scripts\activate` for windows
 3. Install requirements
