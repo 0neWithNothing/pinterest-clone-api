@@ -17,12 +17,12 @@ This is a API for Pinterest like application
 
 1. Copy repository
 2. Create and activate virtual enviroment </br>
-`python3 -m venv venv`
+`python3 -m venv venv` </br>
 `source venv/bin/activate` or `venv\Scripts\activate` for windows
-3. Install requirements
+3. Install requirements </br>
 `pip install -r requirements`
-4. Go to `src` directory and run migrations
-`./manage.py makemigrations`
+4. Go to `src` directory and run migrations </br>
+`./manage.py makemigrations` </br>
 `./manage.py migrate`
 5. Run `./manage.py runserver`
 6. Go to [localhost:8000/api/schema/swagger-ui/](http://127.0.0.1:8000/api/schema/swagger-ui/)
