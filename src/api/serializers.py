@@ -27,7 +27,7 @@ class BoardSerializer(serializers.ModelSerializer):
 
     def paginated_pins(self, obj):
         page_size = 10
-        paginator = Paginator(obj.pins.all(), page_size)
+        paginator = Paginator(obj.pins.all().order_by('title'), page_size)
         page = self.context['request'].query_params.get('page') or 1
         try:
             pins_in_board = paginator.page(page)
@@ -77,7 +77,7 @@ class PinRetrieveSerializer(serializers.ModelSerializer):
 
     def paginated_comments(self, obj):
         page_size = 20
-        paginator = Paginator(obj.comments.all(), page_size)
+        paginator = Paginator(obj.comments.all().order_by('created_at'), page_size)
         page = self.context['request'].query_params.get('page') or 1
         try:
             comments_in_pin = paginator.page(page)
@@ -94,4 +94,3 @@ class LikeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Like
         fields = '__all__'
-

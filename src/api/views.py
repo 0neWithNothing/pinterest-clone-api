@@ -41,11 +41,10 @@ class BoardRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class PinViewSet(viewsets.ModelViewSet):
-    queryset = Pin.objects.all()
     permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
 
     def get_queryset(self):
-        return Pin.objects.annotate(total_likes=Count('likes'), total_comments=Count('comments'))
+        return Pin.objects.annotate(total_likes=Count('likes'), total_comments=Count('comments')).order_by('created_at')
 
     def get_serializer_class(self):
         if self.action == 'create':
@@ -69,7 +68,7 @@ class LikeAPIView(DestroyModelMixin, generics.ListCreateAPIView):
         return pin
 
     def get_queryset(self):
-        likes_qs = Like.objects.filter(pin=self.get_pin())
+        likes_qs = Like.objects.filter(pin=self.get_pin()).order_by('id')
         return likes_qs
 
     def create(self, request, *args, **kwargs):

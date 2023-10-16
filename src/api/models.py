@@ -30,6 +30,9 @@ class Pin(models.Model):
     def __str__(self) -> str:
         return self.title
 
+    class Meta:
+        ordering = ['-created_at']
+
 
 class Comment(models.Model):
     pin = models.ForeignKey(Pin, related_name='comments', on_delete=models.CASCADE)
@@ -54,9 +57,9 @@ def pin_delete_image_on_delete(sender, instance, **kwargs):
     Deletes image from filesystem
     when corresponding `Pin` object is deleted.
     """
-    if instance.avatar:
-        if os.path.isfile(instance.avatar.path):
-            os.remove(instance.avatar.path)
+    if instance.image:
+        if os.path.isfile(instance.image.path):
+            os.remove(instance.image.path)
 
 @receiver(pre_save, sender=Pin)
 def pin_delete_image_on_change(sender, instance, **kwargs):
