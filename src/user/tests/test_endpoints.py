@@ -6,7 +6,6 @@ from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 
 from user.models import Profile
-from user.serializers import ProfileSerializer
 from user.token import email_verification_token
 
 
@@ -112,6 +111,16 @@ class TestProfile(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['first_name'], new_data["first_name"])
     
+
+class TestFollow(APITestCase):
+
+    def setUp(self):
+        self.user_json = {
+            "email": "test@test.test",
+            "password": "qweasdzxc22",
+        }
+        self.user = User.objects.create_user(**self.user_json)
+
     def test_get_follow(self):
         self.client.force_authenticate(self.user)
         response = self.client.get(reverse('follows', kwargs={'slug': self.user.profile.slug}), format="json")
@@ -142,4 +151,3 @@ class TestProfile(APITestCase):
         response = self.client.delete(reverse('follows', kwargs={'slug': user2.profile.slug}), format="json")
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(user2.followers.count(), 0)
-
