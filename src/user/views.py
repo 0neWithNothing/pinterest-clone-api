@@ -130,4 +130,3 @@ class FollowAPIView(DestroyModelMixin, generics.ListCreateAPIView):
     
     def delete(self, request, *args, **kwargs):
         return self.destroy(request, *args, **kwargs)
-    
